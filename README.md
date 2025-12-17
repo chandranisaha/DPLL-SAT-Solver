@@ -1,256 +1,214 @@
-﻿# SAT Solver & Sudoku Solver
+# SAT Solver & Sudoku Solver
 
-This project, developed for the AAD (Algorithms and Design) course, provides a comprehensive implementation and analysis of two primary methods for solving combinatorial problems: a dedicated **Backtracking Solver** and a generic **DPLL-based SAT Solver**.
+This project was developed as part of the **AAD (Algorithms and Design)** course and implements two complementary approaches for solving combinatorial constraint problems:
 
-The application solves Sudoku puzzles of any $N \times N$ size and demonstrates the universality of SAT by solving other NP-complete problems like **N-Queens** and **Graph Coloring**. The project empirically measures and visualizes the performance impact of various advanced heuristics, including **MRV**, **Forward Checking**, **Unit Propagation**, **Pure Literal Elimination**, and **VSIDS**.
+1. A **dedicated Backtracking-based solver** with classic CSP heuristics  
+2. A **general-purpose DPLL-based SAT solver** capable of solving multiple NP-complete problems via CNF encodings
 
-## 🚀 Core Features
+The system solves **Sudoku puzzles of arbitrary N × N size** and demonstrates the expressive power of SAT by solving **N-Queens** and **Graph Coloring**. The project includes a comprehensive benchmarking and visualization pipeline to empirically evaluate the impact of modern heuristics such as **MRV**, **Forward Checking**, **Unit Propagation**, **Pure Literal Elimination**, and **VSIDS**.
 
-### Solvers & Algorithms
+---
 
-  * **Dynamic Sudoku Solver:** Solves $N \times N$ Sudoku puzzles (where $N$ is a perfect square, e.g., 4, 9, 16) loaded from external files.
-  * **Backtracking Solver:** A dedicated recursive solver featuring heuristics:
-      * Minimum Remaining Values (MRV)
-      * Forward Checking
-  * **DPLL SAT Solver:** A robust, configurable DPLL solver that operates on any problem encoded in Conjunctive Normal Form (CNF).
-  * **SAT Heuristics:** Implements a suite of modern heuristics to compare:
-      * Unit Propagation (BCP)
-      * Pure Literal Elimination
-      * VSIDS (Variable State Independent Decaying Sum) branching
-  * **Additional Problem Solvers:**
-      * **N-Queens:** Generates the CNF for the N-Queens problem and solves it using the SAT solver.
-      * **Graph Coloring:** Generates the CNF for K-coloring a graph (loaded from an edge file) and solves it.
+## Core Capabilities
 
-### Benchmarking & Analysis
+### Solvers and Algorithms
 
-  * **Comprehensive Benchmarking:** The `main` function automatically runs a full suite of 11+ configurations, testing every combination of heuristics for both solvers.
-  * **Automated CSV Export:** All performance metrics (time, decisions, backtracks, unit propagations) are automatically saved to `results/backtracking_results.csv` and `results/sat_results.csv`.
-  * **Solution Verification:** Includes a `verify_sudoku_solution` function that rigorously checks the final grid for correctness (no duplicates in any row, column, or box) and reports its status in the log.
-  * **Detailed Logging:** All console output—including initial grids, solved grids, verification status, and verbose stats—is mirrored to a separate log file (e.g., `results/easy_output.txt`) for detailed review.
-  * **Python Visualization:** The `visualize.py` script reads the generated CSV files to produce a full analysis suite of 5 publication-ready graphs, saved to the `analysis/` directory.
-  * **30-Second Timeout:** Each solver configuration automatically times out after 30 seconds if no solution is found, preventing infinite loops on difficult puzzles.
+- **Parameterized Sudoku Solver**  
+  Solves N × N Sudoku instances (where N is a perfect square: 4, 9, 16, …) loaded from external files.
 
------
+- **Backtracking Solver**  
+  A recursive CSP solver enhanced with:
+  - Minimum Remaining Values (MRV)
+  - Forward Checking (FC)
 
-## 🛠️ How to Build and Run
+- **DPLL-based SAT Solver**  
+  A configurable SAT solver operating on arbitrary CNF formulas, supporting:
+  - Unit Propagation (BCP)
+  - Pure Literal Elimination
+  - VSIDS-based variable selection
 
-### 1\. Build
+- **Additional SAT Benchmarks**
+  - **N-Queens**: CNF generation and solving for arbitrary board sizes
+  - **Graph Coloring**: K-coloring of graphs loaded from edge lists
 
-The project uses `std::async` for timeouts, so you must link the pthreads library.
+---
 
-```bash
-# Compile with optimizations
-g++ -o sat_solver sat_solver.cpp -std=c++17 -O2 -lpthread
-```
+## Benchmarking and Analysis
 
-**On Windows (PowerShell):**
-```powershell
-g++ -o sat_solver sat_solver.cpp -std=c++17 -O2 -lpthread
-```
+- **Exhaustive Heuristic Evaluation**  
+  Automatically evaluates **11+ solver configurations**, covering all combinations of heuristics for both solvers.
 
-### 2\. Run Solvers
+- **Timeout Safety**  
+  Each solver configuration is capped at **30 seconds**, preventing pathological instances from stalling execution.
 
-#### Sudoku Puzzles
+- **Structured Metrics Collection**  
+  For every run, the system records:
+  - Execution time
+  - Number of decisions
+  - Number of backtracks
+  - Unit propagations (SAT)
+  - Success / timeout status
 
-Provide a path to a puzzle file. The file must start with the grid size (e.g., 9) followed by the grid numbers (0 for empty).
+- **CSV Export**  
+  Results are saved to:
+  - `results/backtracking_results.csv`
+  - `results/sat_results.csv`
 
-```bash
-# Run the benchmark on a 9x9 puzzle
-./sat_solver test_cases/easy.txt
+- **Solution Verification**  
+  Sudoku solutions are rigorously validated (rows, columns, subgrids), with verification results logged explicitly.
 
-# Run the benchmark on harder puzzles
-./sat_solver test_cases/medium.txt
-./sat_solver test_puzzles/hard.txt
-```
+- **Persistent Logging**  
+  All terminal output is mirrored into structured log files under `results/`.
 
-**On Windows (PowerShell):**
-```powershell
-.\sat_solver.exe test_cases\easy.txt
-.\sat_solver.exe test_cases\medium.txt
-.\sat_solver.exe test_cases\hard.txt
-```
+---
 
-**What happens:** The program will:
-- Load the puzzle from the file
-- Run all 11+ solver configurations (Backtracking with MRV/FC combinations, SAT with Unit Prop/Pure Literal/VSIDS combinations)
-- Each configuration has a 30-second timeout
-- Display results in the terminal
-- Save detailed results to `results/backtracking_results.csv` and `results/sat_results.csv`
-- Save all output to a log file in `results/`
-- Verify the solution correctness
+## Building the Project
 
-#### N-Queens
+The solver uses `std::async` for timeout handling and therefore requires pthread support.
 
-Use the `--nqueens` flag followed by the board size `N`.
+Compile with optimizations enabled:
 
-```bash
-# Solve for an 8x8 board
-./sat_solver --nqueens 8
+    g++ -o sat_solver sat_solver.cpp -std=c++17 -O2 -lpthread
 
-# Solve for a 12x12 board
-./sat_solver --nqueens 12
-```
+(On Windows, the same command works in PowerShell with MinGW.)
 
-**On Windows (PowerShell):**
-```powershell
-.\sat_solver.exe --nqueens 8
-.\sat_solver.exe --nqueens 12
-```
+---
 
-**What happens:** The program will:
-- Generate CNF clauses for the N-Queens problem
-- Solve using the SAT solver
-- Display the solution board configuration
-- Save results to CSV files
+## Running the Solvers
 
-#### Graph Coloring
+### Sudoku Benchmarks
 
-Use the `--gcolor` flag followed by the number of colors `K` and a path to an edge file.
+Provide a puzzle file containing the grid size followed by the grid values (0 represents empty cells).
 
-```bash
-# Find a 3-coloring for the provided graph
-./sat_solver --gcolor 3 graph_edges.txt
-```
+    ./sat_solver test_cases/easy.txt
+    ./sat_solver test_cases/medium.txt
+    ./sat_solver test_cases/hard.txt
 
-**On Windows (PowerShell):**
-```powershell
-.\sat_solver.exe --gcolor 3 graph_edges.txt
-```
+Each run:
+- Executes all solver configurations
+- Enforces per-configuration timeouts
+- Logs detailed statistics
+- Exports CSV results
+- Verifies correctness
 
-**Graph file format:** Each line should contain two integers representing an edge (e.g., `0 1` for an edge between vertices 0 and 1).
+---
 
-**What happens:** The program will:
-- Load the graph from the edge file
-- Generate CNF clauses for K-coloring
-- Solve using the SAT solver
-- Display the color assignment for each vertex
-- Save results to CSV files
+### N-Queens
 
-### 3\. Generate Visualizations
+Run the solver with the `--nqueens` flag:
 
-After running the solver at least once (to generate the CSV files), run the Python script.
+    ./sat_solver --nqueens 8
+    ./sat_solver --nqueens 12
 
-**Dependencies:**
+The solver generates the CNF encoding, solves it using DPLL, and reports the board configuration.
 
-```bash
-pip install pandas matplotlib seaborn
-```
+---
 
-**On Windows (PowerShell):**
-```powershell
-pip install pandas matplotlib seaborn
-```
+### Graph Coloring
 
-**Run Script:**
+Provide the number of colors and an edge list file:
 
-```bash
-# On Linux/Mac
-python3 visualize.py
-```
+    ./sat_solver --gcolor 3 graph_edges.txt
 
-**On Windows (PowerShell):**
-```powershell
-python visualize.py
-# or use the full path if you have multiple Python installations:
-# & "C:\Users\<YourUsername>\AppData\Local\Programs\Python\Python310\python.exe" visualize.py
-```
+Each line of the edge file contains two integers representing an undirected edge.
 
-This will create an `analysis/` directory with the following graphs:
+---
 
-  * `backtracking_performance.png` - Comparison of backtracking solver configurations
-  * `sat_performance.png` - Comparison of SAT solver configurations
-  * `backjumping_analysis.png` - Analysis of decision levels and backtracking patterns
-  * `unit_propagation_impact.png` - Impact of unit propagation on solver efficiency
-  * `solver_comparison.png` - Head-to-head comparison between backtracking and SAT solvers
+## Visualization Pipeline
 
------
+After generating CSV results, performance graphs can be created using the provided Python script.
 
-## 📊 Implemented Features
+Install dependencies:
 
-### Solvers
+    pip install pandas matplotlib seaborn
 
-1. **Backtracking Solver** - Classic recursive backtracking with configurable heuristics
-   - Minimum Remaining Values (MRV) - Choose variable with fewest legal values
-   - Forward Checking (FC) - Prune domains after each assignment
-   
-2. **SAT Solver** - DPLL-based solver with trail-based backtracking
-   - Unit Propagation (BCP) - Automatically assign forced variables
-   - Pure Literal Elimination - Assign variables that only appear in one polarity
-   - VSIDS Variable Selection - Dynamic variable ordering based on conflict frequency
+Run visualization:
 
-### Problem Types Supported
+    python visualize.py
 
-1. **Sudoku** - Any $N \times N$ grid where $N$ is a perfect square (4, 9, 16, 25, etc.)
-2. **N-Queens** - Place N queens on an N×N chessboard with no conflicts
-3. **Graph Coloring** - Color graph vertices with K colors such that no adjacent vertices share a color
+This produces five analysis plots in the `analysis/` directory, including:
+- Backtracking heuristic comparison
+- SAT heuristic comparison
+- Unit propagation impact
+- Backtracking vs SAT performance
+- Decision and backtrack behavior analysis
 
-### Benchmarking & Analysis
+---
 
-- **11+ Solver Configurations** - All combinations of heuristics for both solvers
-- **30-Second Timeout** - Prevents infinite loops on difficult instances
-- **CSV Export** - Detailed statistics for every run
-- **Solution Verification** - Automatic correctness checking
-- **Python Visualization** - 5 publication-ready graphs analyzing performance
-
-### Performance Metrics Tracked
-
-- Execution time (seconds)
-- Number of decisions made
-- Number of backtracks
-- Unit propagations performed (SAT solver)
-- Success/failure status
-- Timeout detection
-
------
-
-## 🎯 Implementation Details
+## Implementation Highlights
 
 ### Key Optimizations
 
-- **Trail-Based Backtracking:** The SAT solver uses a trail vector to efficiently track and undo assignments, reducing memory overhead by ~97% compared to naive array copying.
-- **Efficient Domain Representation:** Backtracking solver uses bitsets for fast domain operations.
-- **Asynchronous Execution:** Each solver configuration runs asynchronously with timeout protection.
+- **Trail-based Assignment Tracking**  
+  The SAT solver uses a trail structure to undo assignments efficiently, avoiding expensive state copying.
 
-### Heuristics Explained
+- **Efficient Domain Representation**  
+  The backtracking solver uses compact domain structures for fast pruning.
 
-**MRV (Minimum Remaining Values):** Selects the variable with the smallest domain (fewest remaining legal values). This "fail-first" strategy prunes the search tree earlier.
+- **Asynchronous Execution Model**  
+  Each solver configuration executes independently with timeout protection.
 
-**Forward Checking:** After assigning a value, immediately removes that value from related variables' domains. Detects failures earlier than simple backtracking.
+---
 
-**Unit Propagation (BCP):** Identifies clauses with only one unassigned literal and forces that assignment. Critical for SAT solver efficiency.
+## Supported Problem Classes
 
-**Pure Literal Elimination:** If a variable only appears positively (or only negatively) in remaining clauses, it can be safely assigned to satisfy those clauses.
+- **Sudoku** — General N × N CSP benchmark  
+- **N-Queens** — Canonical SAT encoding problem  
+- **Graph Coloring** — Constraint satisfaction on arbitrary graphs  
 
-**VSIDS (Variable State Independent Decaying Sum):** Maintains activity scores for variables, bumping scores when involved in conflicts. Variables with higher scores are chosen first, focusing on "problematic" parts of the search space.
+These problems serve as controlled benchmarks to evaluate solver behavior under different constraint structures.
 
------
+---
 
-## 📁 Project Structure
+## Project Structure
 
-```
-├── sat_solver.cpp          # Main solver implementation
-├── benchmark.cpp           # Benchmarking harness (alternative entry point)
-├── visualize.py            # Python script for generating graphs
-├── Makefile                # Build automation
-├── README.md               # This file
-├── include/                # Header files
-│   ├── backtracking_solver.h
-│   ├── sat_solver.h
-│   ├── sudoku_types.h
-│   └── timer.h
-├── src/                    # Source files
-│   ├── backtracking_solver.cpp
-│   ├── sat_solver.cpp
-│   ├── sudoku_types.cpp
-│   └── timer.cpp
-├── test_cases/             # Sudoku puzzle files
-│   ├── easy.txt
-│   ├── medium.txt
-│   ├── hard.txt
-│   └── evil.txt
-├── results/                # Generated CSV files and logs
-└── analysis/               # Generated visualization graphs
-```
+    ├── sat_solver.cpp
+    ├── visualize.py
+    ├── Makefile
+    ├── include/
+    ├── src/
+    ├── test_cases/
+    ├── results/
+    └── analysis/
 
+---
 
------
+## Educational Value
+
+This project emphasizes:
+- Algorithmic trade-offs in CSP and SAT solving
+- The practical impact of heuristics on exponential search
+- Benchmarking methodology and empirical evaluation
+- Translating theoretical algorithms into robust implementations
+
+It is suitable for **systems, algorithms, and software engineering interviews**, as well as further experimentation with SAT-based problem solving.
+
+---
+
+## Limitations
+
+- The SAT solver is based on DPLL rather than CDCL, and therefore does not include clause learning, non-chronological backtracking, or learned clause databases.
+
+- Heuristic evaluation is single-threaded per configuration; solver configurations are benchmarked sequentially rather than in parallel.
+
+- CNF encodings for N-Queens and Graph Coloring are naïve and correctness-focused, not optimized for minimal clause or variable counts.
+
+- The system does not support incremental SAT solving; each problem instance is solved from scratch.
+
+- Memory usage is optimized for clarity and traceability rather than large-scale industrial instances.
+
+- The visualization pipeline analyzes post-execution CSV logs and does not provide real-time profiling.
+
+- The solver is designed for research and educational benchmarking, not as a drop-in replacement for production SAT solvers.
+
+  ---
+
+  ## Conclusion
+
+This project demonstrates a practical and empirical exploration of constraint satisfaction and SAT solving, bridging theoretical algorithms with real-world implementation concerns. By implementing both a heuristic-driven backtracking solver and a general-purpose DPLL-based SAT solver, the project highlights how different algorithmic choices and heuristics affect performance on exponential search problems.
+
+Through systematic benchmarking and visualization, the project shows that techniques such as Unit Propagation, MRV, Forward Checking, and VSIDS are not merely optimizations but are often essential for tractable solving. Extending the SAT solver to problems like Sudoku, N-Queens, and Graph Coloring further demonstrates the expressiveness and generality of SAT as a unifying problem-solving framework.
+
+Overall, this work emphasizes algorithmic trade-offs, empirical evaluation, and solver design principles, making it a strong foundation for further exploration in SAT, CSPs, and optimization-based problem solving, as well as a solid discussion piece for systems and algorithms interviews.
+
+---
